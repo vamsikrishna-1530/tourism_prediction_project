@@ -1,10 +1,73 @@
-from huggingface_hub import HfApi
+# tourism_project/hosting/hosting.py
 import os
+import time
+from huggingface_hub import HfApi, create_repo
+from huggingface_hub.utils import RepositoryNotFoundError, HfHubHTTPError
 
-api = HfApi(token=os.getenv("HF_TOKEN"))
-api.upload_folder(
-    folder_path="tourism_project/deployment",     # the local folder containing your files
-    repo_id="vamsikrishna1516/Tourism_Prediction_App",          # the target repo
-    repo_type="space",                      # dataset, model, or space
-    path_in_repo="",                          # optional: subfolder path inside the repo
-)
+REPO_ID = "vamsikrishna1516/Tourism_Prediction_App"
+LOCAL_APP_FOLDER = "tourism_project/deployment"
+REPO_TYPE = "space"
+
+hf_token = os.getenv("HF_TOKEN")
+if not hf_token:
+    raise ValueError("HF_TOKEN not found in environment. Please set the secret HF_TOKEN with a Hugging Face token that has Space creation permissions.")
+
+api = HfApi(token=hf_token)
+
+# Diagnostics: check token identity
+try:
+    user = api.whoami()
+    print("Authenticated as HF user:", user.get("name"))
+except Exception as e:
+    print("Failed to get HF identity (token may be invalid):", e)
+    raise
+
+# Ensure local folder exists
+if not os.path.isdir(LOCAL_APP_FOLDER):
+    raise FileNotFoundError(f"Local app folder not found: {LOCAL_APP_FOLDER}. Please ensure files (app.py, requirements.txt) are present.")
+
+# Create Space if not exists (with retries)
+space_exists = False
+try:
+    api.repo_info(repo_id=REPO_ID, repo_type=REPO_TYPE)
+    print(f"Space '{REPO_ID}' already exists.")
+    space_exists = True
+except RepositoryNotFoundError:
+    print(f"Space '{REPO_ID}' not found. Attempting to create it now...")
+    try:
+        # create_repo for spaces: repo_type="space", space_sdk="streamlit"
+        create_repo(repo_id=REPO_ID, repo_type="space", space_sdk="streamlit", private=False, exist_ok=True)
+        print("create_repo() returned (requested creation).")
+    except HfHubHTTPError as e:
+        print("create_repo() failed with HTTP error:", e)
+        raise
+    except Exception as e:
+        print("create_repo() failed:", e)
+        raise
+
+    # wait & verify creation (small backoff)
+    for attempt in range(8):
+        try:
+            api.repo_info(repo_id=REPO_ID, repo_type=REPO_TYPE)
+            print("Space is now available.")
+            space_exists = True
+            break
+        except RepositoryNotFoundError:
+            print(f"Space not available yet, retrying ({attempt+1}/8)...")
+            time.sleep(3)
+    if not space_exists:
+        raise RuntimeError("Space was not found after creation attempts. Check token permissions and that the repo_id is correct.")
+
+# Finally upload the folder
+print(f"Uploading '{LOCAL_APP_FOLDER}' to Space: {REPO_ID} ...")
+try:
+    api.upload_folder(
+        folder_path=LOCAL_APP_FOLDER,
+        repo_id=REPO_ID,
+        repo_type="space",
+        path_in_repo="",
+    )
+    print("Upload completed successfully.")
+except Exception as e:
+    print("Upload failed:", e)
+    raise
