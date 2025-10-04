@@ -4,7 +4,7 @@ import time
 from huggingface_hub import HfApi, create_repo
 from huggingface_hub.utils import RepositoryNotFoundError, HfHubHTTPError
 
-REPO_ID = "vamsikrishna1516/Tourism_Prediction_App"
+REPO_ID = "vamsikrishna1516/Tourism-Prediction-App"
 LOCAL_APP_FOLDER = "tourism_project/deployment"
 REPO_TYPE = "space"
 
@@ -32,9 +32,9 @@ try:
     api.repo_info(repo_id=REPO_ID, repo_type=REPO_TYPE)
     print(f"Space '{REPO_ID}' already exists.")
 except RepositoryNotFoundError:
-    print(f"⚙️ Space '{REPO_ID}' not found. Creating a new Streamlit Space...")
+    print(f"Space '{REPO_ID}' not found. Creating a new Streamlit Space...")
     create_repo(
-        repo_id=REPO_ID,
+        "Tourism-Prediction-App",
         repo_type="space",
         space_sdk="streamlit",
         private=False,
