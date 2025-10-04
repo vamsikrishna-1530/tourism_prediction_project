@@ -31,19 +31,16 @@ space_exists = False
 try:
     api.repo_info(repo_id=REPO_ID, repo_type=REPO_TYPE)
     print(f"Space '{REPO_ID}' already exists.")
-    space_exists = True
 except RepositoryNotFoundError:
-    print(f"Space '{REPO_ID}' not found. Attempting to create it now...")
-    try:
-        # create_repo for spaces: repo_type="space", space_sdk="streamlit"
-        create_repo(repo_id=REPO_ID, repo_type="space", space_sdk="streamlit", private=False, exist_ok=True)
-        print("create_repo() returned (requested creation).")
-    except HfHubHTTPError as e:
-        print("create_repo() failed with HTTP error:", e)
-        raise
-    except Exception as e:
-        print("create_repo() failed:", e)
-        raise
+    print(f"⚙️ Space '{REPO_ID}' not found. Creating a new Streamlit Space...")
+    create_repo(
+        repo_id=REPO_ID,
+        repo_type="space",
+        sdk="streamlit",
+        private=False,
+        exist_ok=True
+    )
+    print(f"Space '{REPO_ID}' created successfully!")
 
     # wait & verify creation (small backoff)
     for attempt in range(8):
