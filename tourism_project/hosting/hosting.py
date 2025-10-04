@@ -36,7 +36,7 @@ except RepositoryNotFoundError:
     create_repo(
         repo_id=REPO_ID,
         repo_type="space",
-        sdk="streamlit",
+        space_sdk="streamlit",
         private=False,
         exist_ok=True
     )
