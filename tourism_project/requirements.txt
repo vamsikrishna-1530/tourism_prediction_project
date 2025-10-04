@@ -1,0 +1,19 @@
+# ------------------------------
+# Core Dependencies for Tourism Wellness Package Prediction
+# ------------------------------
+
+# Data Handling
+pandas==2.2.2
+numpy==1.26.4
+datasets==3.6.0
+
+# Machine Learning
+scikit-learn==1.6.0
+xgboost==2.1.4
+joblib==1.5.1
+
+# Hugging Face Integration
+huggingface_hub==0.32.6
+
+# Optional but useful for config/env management
+python-dotenv==1.0.1
