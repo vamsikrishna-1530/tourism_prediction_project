@@ -1,4 +1,3 @@
-%%writefile tourism_project/hosting/hosting.py
 # ------------------------------
 # Hosting Script — Upload Streamlit App to Hugging Face Space
 # ------------------------------
